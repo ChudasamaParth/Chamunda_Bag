@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "493045183022",
+    "project_id": "chamunda-bag",
+    "storage_bucket": "chamunda-bag.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:493045183022:android:d21052ce48286d624b65bf",
+        "android_client_info": {
+          "package_name": "com.example.chamunda_bag"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBbk8VTg8aZ7FbEPZ5tM9ACg28RH6gLlsE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
