@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../core/app_colors.dart';
-
 import '../../models/product_model.dart';
 
 class FeaturedProductsSection extends StatelessWidget {
@@ -21,7 +20,7 @@ class FeaturedProductsSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        /// Header
+        // Header
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -59,19 +58,21 @@ class FeaturedProductsSection extends StatelessWidget {
 
         const SizedBox(height: 20),
 
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: featuredProducts.length,
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            crossAxisSpacing: 16,
-            mainAxisSpacing: 18,
-            childAspectRatio: 0.48,
+        // Horizontal Featured Products
+        SizedBox(
+          height: 310,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: featuredProducts.length,
+            padding: const EdgeInsets.only(right: 8),
+            separatorBuilder: (_, __) => const SizedBox(width: 16),
+            itemBuilder: (context, index) {
+              return SizedBox(
+                width: 150,
+                child: ProductCard(product: featuredProducts[index]),
+              );
+            },
           ),
-          itemBuilder: (context, index) {
-            return ProductCard(product: featuredProducts[index]);
-          },
         ),
       ],
     );

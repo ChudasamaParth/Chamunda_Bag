@@ -6,8 +6,10 @@ import 'package:chamunda_bag/data/product_data/category_model.dart';
 
 import 'package:chamunda_bag/screens/home/featured_products.dart';
 import 'package:chamunda_bag/screens/product/product_screen.dart';
+import 'package:chamunda_bag/screens/profile/profile_screen.dart';
 import 'package:chamunda_bag/widgets/banner_slider.dart';
 import 'package:chamunda_bag/widgets/category_card.dart';
+import 'package:chamunda_bag/widgets/user_avtar.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -25,12 +27,26 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         shadowColor: Colors.white70,
         title: Image.asset(
           "assets/images/brand_icon.png",
           height: 60,
           width: 60,
         ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16),
+            child: UserAvatar(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                );
+              },
+            ),
+          ),
+        ],
         centerTitle: false,
       ),
       body: SafeArea(

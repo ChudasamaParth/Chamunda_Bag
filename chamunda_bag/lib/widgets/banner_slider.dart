@@ -1,6 +1,10 @@
 import 'dart:async';
 
 import 'package:chamunda_bag/data/home_screen_data.dart';
+import 'package:chamunda_bag/data/product_data/office_bag.dart';
+import 'package:chamunda_bag/data/product_data/product_data.dart';
+import 'package:chamunda_bag/data/product_data/school_bag.dart';
+import 'package:chamunda_bag/screens/product/product_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -143,7 +147,19 @@ class _HomeBannerSliderState extends State<HomeBannerSlider> {
                       borderRadius: BorderRadius.circular(12),
                       child: InkWell(
                         borderRadius: BorderRadius.circular(12),
-                        onTap: () {},
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) {
+                                return ProductsScreen(
+                                  title: "Products",
+                                  products: allProducts,
+                                );
+                              },
+                            ),
+                          );
+                        },
                         child: Padding(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 18,

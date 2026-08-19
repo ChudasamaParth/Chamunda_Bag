@@ -2,6 +2,7 @@ import 'package:chamunda_bag/screens/cart/cart_item_card.dart';
 import 'package:chamunda_bag/provider/cart_provider.dart';
 import 'package:chamunda_bag/screens/cart/empty_card.dart';
 import 'package:chamunda_bag/screens/cart/order_summary.dart';
+import 'package:chamunda_bag/screens/main_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -21,6 +22,18 @@ class CartScreen extends StatelessWidget {
             backgroundColor: Colors.white,
             elevation: 0,
             centerTitle: true,
+            leading: BackButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) {
+                      return MainScreen();
+                    },
+                  ),
+                );
+              },
+            ),
             title: const Text(
               "My Cart",
               style: TextStyle(
