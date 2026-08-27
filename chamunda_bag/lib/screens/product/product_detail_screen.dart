@@ -9,7 +9,6 @@ import 'package:chamunda_bag/widgets/product_detail.dart/product_feature_chip.da
 import 'package:chamunda_bag/widgets/product_detail.dart/product_image_section.dart';
 import 'package:chamunda_bag/widgets/product_detail.dart/product_info.dart';
 
-
 import 'package:flutter/material.dart';
 
 import 'package:provider/provider.dart';
@@ -102,7 +101,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               // ),
 
               // Space for BottomActionBar
-              const SizedBox(height: 120),
             ],
           ),
         ),

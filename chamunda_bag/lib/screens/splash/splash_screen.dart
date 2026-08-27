@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:chamunda_bag/Admin/AdminDashboard.dart';
+import 'package:chamunda_bag/provider/admin_provider.dart';
 import 'package:chamunda_bag/provider/auth_provider.dart';
 import 'package:chamunda_bag/authentication/login_screen.dart';
 import 'package:chamunda_bag/screens/main_screen.dart';
@@ -80,16 +82,27 @@ class _SplashScreenState extends State<SplashScreen>
 
     if (auth.isLoggedIn) {
       try {
+        // Load user data
         await context.read<WishlistProvider>().loadWishlist(allProducts);
 
         await context.read<CartProvider>().loadCart(allProducts);
+
+        // Check whether current user is admin
+        await context.read<AdminProvider>().checkAdminStatus();
       } catch (e) {
         debugPrint('Error loading user data: $e');
       }
 
       if (!mounted) return;
 
-      _goTo(const MainScreen());
+      // Get admin status
+      final isAdmin = context.read<AdminProvider>().isAdmin;
+
+      if (isAdmin) {
+        _goTo(const AdminDashboard());
+      } else {
+        _goTo(const MainScreen());
+      }
     } else {
       _goTo(const LoginScreen());
     }

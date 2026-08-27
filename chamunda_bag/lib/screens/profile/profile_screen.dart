@@ -1,4 +1,5 @@
 import 'package:chamunda_bag/authentication/login_screen.dart';
+import 'package:chamunda_bag/provider/admin_provider.dart';
 import 'package:chamunda_bag/provider/auth_provider.dart';
 import 'package:chamunda_bag/screens/check_out/adreess_screen.dart';
 import 'package:chamunda_bag/screens/check_out/my_order_screen.dart';
@@ -233,6 +234,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Navigator.pop(dialogContext);
 
                 await context.read<AuthProvider>().logout();
+
+                context.read<AdminProvider>().clearAdminStatus();
 
                 if (!mounted) return;
 

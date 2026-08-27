@@ -151,13 +151,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         );
       },
     );
-
-    if (shouldCancel == true) {
-      await _cancelOrder();
-    }
   }
-
-  // ============================================================
+  
   Widget _buildOrderHeader() {
     return Container(
       width: double.infinity,

@@ -1,8 +1,8 @@
+import 'package:chamunda_bag/Admin/AdminDashboard.dart';
 import 'package:chamunda_bag/authentication/forgot_pass_screen.dart';
 import 'package:chamunda_bag/authentication/sign_up_screen.dart';
-import 'package:chamunda_bag/data/product_data/product_data.dart';
+import 'package:chamunda_bag/provider/admin_provider.dart';
 import 'package:chamunda_bag/screens/main_screen.dart';
-import 'package:chamunda_bag/provider/wishlist_provider..dart';
 import 'package:chamunda_bag/widgets/custom_textfield.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -39,7 +39,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     final auth = context.read<AuthProvider>();
 
-    final success = await auth.login(
+    final success = await context.read<AuthProvider>().login(
       email: _emailController.text.trim(),
       password: _passwordController.text,
     );
@@ -47,16 +47,25 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!mounted) return;
 
     if (success) {
-      await context.read<WishlistProvider>().loadWishlist(allProducts);
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (_) => const MainScreen()),
-        (route) => false,
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(auth.errorMessage ?? "Login failed")),
-      );
+      await context.read<AdminProvider>().checkAdminStatus();
+
+      if (!mounted) return;
+
+      final isAdmin = context.read<AdminProvider>().isAdmin;
+
+      if (isAdmin) {
+        // Admin navigation
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const AdminDashboard()),
+        );
+      } else {
+        // Normal user navigation
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const MainScreen()),
+        );
+      }
     }
   }
 
