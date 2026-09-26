@@ -3,7 +3,6 @@ import 'package:chamunda_bag/provider/admin_provider.dart';
 import 'package:chamunda_bag/provider/auth_provider.dart';
 import 'package:chamunda_bag/screens/check_out/adreess_screen.dart';
 import 'package:chamunda_bag/screens/check_out/my_order_screen.dart';
-import 'package:chamunda_bag/screens/home/home_screen.dart';
 import 'package:chamunda_bag/screens/main_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -25,6 +24,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     super.initState();
 
     Future.microtask(() {
+      if (!mounted) return;
+
       context.read<ProfileProvider>().loadProfile();
     });
   }
@@ -33,6 +34,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     final profile = context.watch<ProfileProvider>();
 
+    // Still loading profile
     if (profile.isLoading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
@@ -40,7 +42,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final data = profile.userData;
 
     if (data == null) {
-      return const Scaffold(body: Center(child: Text("Create Your Account ")));
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     final name = data['name'] ?? 'User';
@@ -55,13 +57,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         elevation: 0,
         leading: BackButton(
           onPressed: () {
-            Navigator.push(
+            Navigator.pushReplacement(
               context,
-              MaterialPageRoute(
-                builder: (context) {
-                  return MainScreen();
-                },
-              ),
+              MaterialPageRoute(builder: (_) => const MainScreen()),
             );
           },
         ),
@@ -168,8 +166,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 );
               },
             ),
+
             _actionTile(
-              icon: Icons.shopping_bag_outlined,
+              icon: Icons.location_on_outlined,
               title: "My Address",
               onTap: () {
                 Navigator.push(
@@ -184,6 +183,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               title: "Settings",
               onTap: () {},
             ),
+
             ListTile(
               leading: const Icon(Icons.logout_rounded, color: Colors.red),
               title: Text(
@@ -235,11 +235,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                 await context.read<AuthProvider>().logout();
 
-                context.read<AdminProvider>().clearAdminStatus();
-
                 if (!mounted) return;
 
-                // Navigate to login
+                context.read<AdminProvider>().clearAdminStatus();
+
                 Navigator.pushAndRemoveUntil(
                   context,
                   MaterialPageRoute(builder: (_) => const LoginScreen()),

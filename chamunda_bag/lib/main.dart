@@ -1,4 +1,5 @@
 import 'package:chamunda_bag/provider/address_provider.dart';
+import 'package:chamunda_bag/provider/admin_order_provider.dart';
 import 'package:chamunda_bag/provider/admin_provider.dart';
 import 'package:chamunda_bag/provider/auth_provider.dart';
 import 'package:chamunda_bag/firebase_options.dart';
@@ -32,6 +33,8 @@ Future<void> main() async {
         ChangeNotifierProvider(create: (_) => AddressProvider()),
         ChangeNotifierProvider(create: (_) => OrderProvider()),
         ChangeNotifierProvider(create: (_) => AdminProvider()),
+
+        ChangeNotifierProvider(create: (_) => AdminOrderProvider()),
       ],
       child: const ChamundaBagApp(),
     ),

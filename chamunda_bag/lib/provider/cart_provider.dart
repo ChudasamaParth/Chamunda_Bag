@@ -8,23 +8,29 @@ class CartProvider extends ChangeNotifier {
   final List<CartItemModel> _items = [];
 
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   List<CartItemModel> get items => List.unmodifiable(_items);
 
-  /// Total number of products (including quantity)
-  int get totalItems => _items.fold(0, (sum, item) => sum + item.quantity);
+  // --------------------------------------------------
+  // CART TOTALS
+  // --------------------------------------------------
 
-  /// Cart subtotal
-  double get subtotal => _items.fold(0, (sum, item) => sum + item.totalPrice);
+  int get totalItems {
+    return _items.fold(0, (sum, item) => sum + item.quantity);
+  }
 
-  /// Original price before discount
-  double get originalTotal =>
-      _items.fold(0, (sum, item) => sum + item.totalOldPrice);
+  double get subtotal {
+    return _items.fold(0, (sum, item) => sum + item.totalPrice);
+  }
 
-  /// Total savings
-  double get savings => originalTotal - subtotal;
+  double get originalTotal {
+    return _items.fold(0, (sum, item) => sum + item.totalOldPrice);
+  }
+
+  double get savings {
+    return originalTotal - subtotal;
+  }
 
   double get shipping => 0;
 
@@ -56,66 +62,100 @@ class CartProvider extends ChangeNotifier {
   // ADD TO CART
   // --------------------------------------------------
 
-  Future<void> addToCart(ProductModel product) async {
+  Future<bool> addToCart(ProductModel product) async {
     final cartRef = _cartRef;
 
+    // User must be logged in.
     if (cartRef == null) {
-      return;
+      debugPrint('ADD TO CART: User is not logged in.');
+      return false;
     }
 
-    final index = _items.indexWhere((item) => item.product.id == product.id);
+    try {
+      final index = _items.indexWhere((item) => item.product.id == product.id);
 
-    if (index != -1) {
-      _items[index].quantity++;
+      // ------------------------------------------
+      // PRODUCT ALREADY EXISTS
+      // ------------------------------------------
 
-      await cartRef.doc(product.id).update({
-        'quantity': _items[index].quantity,
-      });
-    } else {
-      _items.add(CartItemModel(product: product));
+      if (index != -1) {
+        _items[index].quantity++;
 
-      await cartRef.doc(product.id).set({
-        'productId': product.id,
-        'quantity': 1,
-        'addedAt': FieldValue.serverTimestamp(),
-      });
+        await cartRef.doc(product.id).update({
+          'quantity': _items[index].quantity,
+        });
+      }
+      // ------------------------------------------
+      // NEW PRODUCT
+      // ------------------------------------------
+      else {
+        final cartItem = CartItemModel(product: product);
+
+        _items.add(cartItem);
+
+        await cartRef.doc(product.id).set({
+          'productId': product.id,
+          'quantity': cartItem.quantity,
+          'addedAt': FieldValue.serverTimestamp(),
+        });
+      }
+
+      notifyListeners();
+
+      debugPrint('ADD TO CART SUCCESS: ${product.name}');
+
+      return true;
+    } catch (e) {
+      debugPrint('ADD TO CART ERROR: $e');
+
+      return false;
     }
-
-    notifyListeners();
   }
 
   // --------------------------------------------------
   // REMOVE FROM CART
   // --------------------------------------------------
 
-  Future<void> removeFromCart(ProductModel product) async {
+  Future<bool> removeFromCart(ProductModel product) async {
     final cartRef = _cartRef;
 
     if (cartRef == null) {
-      return;
+      return false;
     }
 
-    _items.removeWhere((item) => item.product.id == product.id);
+    try {
+      _items.removeWhere((item) => item.product.id == product.id);
 
-    await cartRef.doc(product.id).delete();
+      await cartRef.doc(product.id).delete();
 
-    notifyListeners();
+      notifyListeners();
+
+      return true;
+    } catch (e) {
+      debugPrint('REMOVE FROM CART ERROR: $e');
+
+      return false;
+    }
   }
 
   // --------------------------------------------------
   // INCREASE QUANTITY
   // --------------------------------------------------
 
-  Future<void> increaseQuantity(ProductModel product) async {
+  Future<bool> increaseQuantity(ProductModel product) async {
     final cartRef = _cartRef;
 
     if (cartRef == null) {
-      return;
+      return false;
     }
 
     final index = _items.indexWhere((item) => item.product.id == product.id);
 
-    if (index != -1) {
+    if (index == -1) {
+      return false;
+    }
+
+    try {
       _items[index].quantity++;
 
       await cartRef.doc(product.id).update({
@@ -123,6 +163,12 @@ class CartProvider extends ChangeNotifier {
       });
 
       notifyListeners();
+
+      return true;
+    } catch (e) {
+      debugPrint('INCREASE QUANTITY ERROR: $e');
+
+      return false;
     }
   }
 
@@ -130,54 +176,79 @@ class CartProvider extends ChangeNotifier {
   // DECREASE QUANTITY
   // --------------------------------------------------
 
-  Future<void> decreaseQuantity(ProductModel product) async {
+  Future<bool> decreaseQuantity(ProductModel product) async {
     final cartRef = _cartRef;
 
     if (cartRef == null) {
-      return;
+      return false;
     }
 
     final index = _items.indexWhere((item) => item.product.id == product.id);
 
     if (index == -1) {
-      return;
+      return false;
     }
 
-    if (_items[index].quantity > 1) {
-      _items[index].quantity--;
+    try {
+      // ------------------------------------------
+      // QUANTITY > 1
+      // ------------------------------------------
 
-      await cartRef.doc(product.id).update({
-        'quantity': _items[index].quantity,
-      });
-    } else {
-      _items.removeAt(index);
+      if (_items[index].quantity > 1) {
+        _items[index].quantity--;
 
-      await cartRef.doc(product.id).delete();
+        await cartRef.doc(product.id).update({
+          'quantity': _items[index].quantity,
+        });
+      }
+      // ------------------------------------------
+      // QUANTITY == 1
+      // REMOVE PRODUCT
+      // ------------------------------------------
+      else {
+        _items.removeAt(index);
+
+        await cartRef.doc(product.id).delete();
+      }
+
+      notifyListeners();
+
+      return true;
+    } catch (e) {
+      debugPrint('DECREASE QUANTITY ERROR: $e');
+
+      return false;
     }
-
-    notifyListeners();
   }
 
   // --------------------------------------------------
   // CLEAR CART
   // --------------------------------------------------
 
-  Future<void> clearCart() async {
+  Future<bool> clearCart() async {
     final cartRef = _cartRef;
 
     if (cartRef == null) {
-      return;
+      return false;
     }
 
-    final snapshot = await cartRef.get();
+    try {
+      final snapshot = await cartRef.get();
 
-    for (final document in snapshot.docs) {
-      await document.reference.delete();
+      for (final document in snapshot.docs) {
+        await document.reference.delete();
+      }
+
+      _items.clear();
+
+      notifyListeners();
+
+      return true;
+    } catch (e) {
+      debugPrint('CLEAR CART ERROR: $e');
+
+      return false;
     }
-
-    _items.clear();
-
-    notifyListeners();
   }
 
   // --------------------------------------------------
@@ -188,6 +259,8 @@ class CartProvider extends ChangeNotifier {
     final cartRef = _cartRef;
 
     if (cartRef == null) {
+      _items.clear();
+      notifyListeners();
       return;
     }
 
@@ -220,9 +293,14 @@ class CartProvider extends ChangeNotifier {
         }
       }
 
+      // Newest/Firestore cart order isn't important here,
+      // but this keeps the local list consistent.
+
       notifyListeners();
+
+      debugPrint('CART LOADED: ${_items.length} products');
     } catch (e) {
-      debugPrint('Error loading cart: $e');
+      debugPrint('LOAD CART ERROR: $e');
     }
   }
 }

@@ -23,7 +23,7 @@ class ProductCard extends StatelessWidget {
         );
       },
       child: Container(
-        height: 300,
+        height: 280,
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(22),
@@ -90,7 +90,7 @@ class ProductCard extends StatelessWidget {
                         style: const TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
-                          fontSize: 11,
+                          fontSize: 10,
                         ),
                       ),
                     ),
@@ -100,9 +100,10 @@ class ProductCard extends StatelessWidget {
             ),
 
             // Footer will come next
-            Expanded(
+            Container(
+              height: 130,
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+                padding: const EdgeInsets.fromLTRB(14, 14, 10, 10),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -152,7 +153,7 @@ class ProductCard extends StatelessWidget {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                        fontSize: 14,
+                        fontSize: 12,
                         fontWeight: FontWeight.bold,
                         height: 1.3,
                       ),
@@ -170,7 +171,7 @@ class ProductCard extends StatelessWidget {
                             Text(
                               "₹${product.price.toInt()}",
                               style: const TextStyle(
-                                fontSize: 16,
+                                fontSize: 14,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -190,8 +191,8 @@ class ProductCard extends StatelessWidget {
 
                         /// Add Button
                         Container(
-                          width: 35,
-                          height: 35,
+                          width: 30,
+                          height: 30,
                           decoration: BoxDecoration(
                             color: AppColors.primary,
                             borderRadius: BorderRadius.circular(12),

@@ -1,16 +1,67 @@
+import 'package:chamunda_bag/authentication/login_screen.dart';
 import 'package:chamunda_bag/main.dart';
+import 'package:chamunda_bag/models/order_model.dart';
+import 'package:chamunda_bag/provider/admin_order_provider.dart';
+import 'package:chamunda_bag/provider/admin_provider.dart';
+import 'package:chamunda_bag/provider/auth_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
 import '../../core/app_colors.dart';
 
-class AdminDashboard extends StatelessWidget {
+class AdminDashboard extends StatefulWidget {
   const AdminDashboard({super.key});
 
   @override
+  State<AdminDashboard> createState() => _AdminDashboardState();
+}
+
+class _AdminDashboardState extends State<AdminDashboard> {
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<AdminOrderProvider>().loadOrders();
+    });
+  }
+
   Widget build(BuildContext context) {
+    final orderProvider = context.watch<AdminOrderProvider>();
+    final orders = orderProvider.orders;
+
+    final placedOrders = orders
+        .where((order) => order.orderStatus == 'placed')
+        .length;
+
+    final shippedOrders = orders
+        .where((order) => order.orderStatus == 'shipped')
+        .length;
+
+    final deliveredOrders = orders
+        .where((order) => order.orderStatus == 'delivered')
+        .length;
     return Scaffold(
       backgroundColor: AppColors.background,
+
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: Colors.red,
+        onPressed: () async {
+          await context.read<AuthProvider>().logout();
+
+          context.read<AdminProvider>().clearAdminStatus();
+
+          if (!context.mounted) return;
+
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (_) => const LoginScreen()),
+            (route) => false,
+          );
+        },
+        child: const Icon(Icons.logout, color: Colors.white),
+      ),
 
       appBar: AppBar(
         automaticallyImplyLeading: false,
@@ -79,25 +130,28 @@ class AdminDashboard extends StatelessWidget {
               mainAxisSpacing: 14,
               crossAxisSpacing: 14,
               childAspectRatio: 1.5,
-              children: const [
+              children: [
                 _DashboardCard(
                   title: 'Total Orders',
-                  value: '0',
+                  value: orders.length.toString(),
                   icon: Icons.shopping_bag_outlined,
                 ),
+
                 _DashboardCard(
                   title: 'Placed',
-                  value: '0',
+                  value: placedOrders.toString(),
                   icon: Icons.pending_actions_outlined,
                 ),
+
                 _DashboardCard(
                   title: 'Shipped',
-                  value: '0',
+                  value: shippedOrders.toString(),
                   icon: Icons.local_shipping_outlined,
                 ),
+
                 _DashboardCard(
                   title: 'Delivered',
-                  value: '0',
+                  value: deliveredOrders.toString(),
                   icon: Icons.check_circle_outline,
                 ),
               ],
@@ -116,8 +170,183 @@ class AdminDashboard extends StatelessWidget {
 
             const SizedBox(height: 16),
 
-            const _EmptyOrders(),
+            if (orderProvider.isLoading)
+              const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(30),
+                  child: CircularProgressIndicator(),
+                ),
+              )
+            else if (orders.isEmpty)
+              const _EmptyOrders()
+            else
+              ...orders.take(5).map((order) => _AdminOrderCard(order: order)),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _AdminOrderCard extends StatelessWidget {
+  final OrderModel order;
+
+  const _AdminOrderCard({required this.order});
+
+  @override
+  Widget build(BuildContext context) {
+    final isDelivered = order.orderStatus.toLowerCase() == 'delivered';
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.10),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  Icons.shopping_bag_outlined,
+                  color: AppColors.primary,
+                ),
+              ),
+
+              const SizedBox(width: 12),
+
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      order.fullName,
+                      style: GoogleFonts.poppins(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+
+                    const SizedBox(height: 2),
+
+                    Text(
+                      '${order.totalItems} item(s) • ₹${order.total.toStringAsFixed(0)}',
+                      style: GoogleFonts.poppins(
+                        fontSize: 11,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              _buildStatus(order.orderStatus),
+            ],
+          ),
+
+          const SizedBox(height: 14),
+
+          if (!isDelivered)
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () async {
+                  try {
+                    await context.read<AdminOrderProvider>().markAsDelivered(
+                      order,
+                    );
+
+                    if (!context.mounted) return;
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Order marked as delivered'),
+                      ),
+                    );
+                  } catch (e) {
+                    if (!context.mounted) return;
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Failed to update order')),
+                    );
+                  }
+                },
+                icon: const Icon(Icons.check_circle_outline, size: 18),
+                label: const Text('Mark as Delivered'),
+              ),
+            )
+          else
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              decoration: BoxDecoration(
+                color: Colors.green.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Center(
+                child: Text(
+                  'Delivered',
+                  style: GoogleFonts.poppins(
+                    color: Colors.green,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatus(String status) {
+    Color color;
+
+    switch (status.toLowerCase()) {
+      case 'placed':
+        color = Colors.orange;
+        break;
+
+      case 'confirmed':
+        color = Colors.blue;
+        break;
+
+      case 'shipped':
+        color = Colors.deepPurple;
+        break;
+
+      case 'delivered':
+        color = Colors.green;
+        break;
+
+      case 'cancelled':
+        color = Colors.red;
+        break;
+
+      default:
+        color = Colors.grey;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        status.toUpperCase(),
+        style: GoogleFonts.poppins(
+          fontSize: 9,
+          fontWeight: FontWeight.w600,
+          color: color,
         ),
       ),
     );

@@ -71,7 +71,7 @@ class BottomActionBar extends StatelessWidget {
                     child: ElevatedButton.icon(
                       onPressed: () {
                         if (!isInCart) {
-                          cart?.addToCart(product);
+                          cart.addToCart(product);
 
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(

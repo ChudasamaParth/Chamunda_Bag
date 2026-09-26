@@ -78,40 +78,63 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _checkAuthentication() async {
+    debugPrint('===== SPLASH AUTH CHECK START =====');
+
     final auth = context.read<AuthProvider>();
 
-    if (auth.isLoggedIn) {
-      try {
-        // Load user data
-        await context.read<WishlistProvider>().loadWishlist(allProducts);
+    final user = await auth.waitForAuthState();
 
-        await context.read<CartProvider>().loadCart(allProducts);
+    debugPrint('SPLASH USER: ${user?.email}');
+    debugPrint('SPLASH UID: ${user?.uid}');
 
-        // Check whether current user is admin
-        await context.read<AdminProvider>().checkAdminStatus();
-      } catch (e) {
-        debugPrint('Error loading user data: $e');
-      }
+    if (!mounted) return;
 
-      if (!mounted) return;
-
-      // Get admin status
-      final isAdmin = context.read<AdminProvider>().isAdmin;
-
-      if (isAdmin) {
-        _goTo(const AdminDashboard());
-      } else {
-        _goTo(const MainScreen());
-      }
-    } else {
+    if (user == null) {
+      debugPrint('SPLASH → LOGIN');
       _goTo(const LoginScreen());
+      return;
+    }
+
+    debugPrint('SPLASH → USER LOGGED IN');
+
+    try {
+      debugPrint('LOADING WISHLIST...');
+      await context.read<WishlistProvider>().loadWishlist(allProducts);
+      debugPrint('WISHLIST LOADED');
+
+      debugPrint('LOADING CART...');
+      await context.read<CartProvider>().loadCart(allProducts);
+      debugPrint('CART LOADED');
+    } catch (e) {
+      debugPrint('ERROR LOADING USER DATA: $e');
+    }
+
+    if (!mounted) return;
+
+    debugPrint('CHECKING ADMIN STATUS...');
+
+    final adminProvider = context.read<AdminProvider>();
+
+    await adminProvider.checkAdminStatus();
+
+    debugPrint('IS ADMIN: ${adminProvider.isAdmin}');
+
+    if (!mounted) return;
+
+    if (adminProvider.isAdmin) {
+      debugPrint('SPLASH → ADMIN DASHBOARD');
+      _goTo(const AdminDashboard());
+    } else {
+      debugPrint('SPLASH → MAIN SCREEN');
+      _goTo(const MainScreen());
     }
   }
 
   void _goTo(Widget screen) {
-    Navigator.pushReplacement(
+    Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(builder: (_) => screen),
+      (route) => false,
     );
   }
 

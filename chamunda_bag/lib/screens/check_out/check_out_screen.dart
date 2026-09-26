@@ -127,6 +127,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         paymentStatus: 'pending',
         orderStatus: 'placed',
         createdAt: DateTime.now(),
+        statusHistory: {'placed': DateTime.now()},
       );
 
       await context.read<OrderProvider>().createOrder(order);

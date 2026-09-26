@@ -26,8 +26,8 @@ class WishlistButton extends StatelessWidget {
             },
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 250),
-              height: 40,
-              width: 40,
+              height: 30,
+              width: 30,
               alignment: Alignment.center,
               child: AnimatedSwitcher(
                 duration: const Duration(milliseconds: 250),

@@ -27,6 +27,9 @@ class OrderModel {
   // Order status
   final String orderStatus;
 
+  // Order status history
+  final Map<String, DateTime> statusHistory;
+
   final DateTime createdAt;
 
   const OrderModel({
@@ -45,6 +48,7 @@ class OrderModel {
     required this.paymentMethod,
     required this.paymentStatus,
     required this.orderStatus,
+    required this.statusHistory,
     required this.createdAt,
   });
 
@@ -77,11 +81,33 @@ class OrderModel {
 
       // Order
       'orderStatus': orderStatus,
+
+      // Status history
+      'statusHistory': statusHistory.map(
+        (key, value) => MapEntry(key, Timestamp.fromDate(value)),
+      ),
+
       'createdAt': createdAt,
     };
   }
 
-  factory OrderModel.fromMap(String id, Map<String, dynamic> map) {
+  factory OrderModel.fromMap(
+    String id,
+    Map<String, dynamic> map,
+  ) {
+    final historyMap =
+        Map<String, dynamic>.from(map['statusHistory'] ?? {});
+
+    final statusHistory = <String, DateTime>{};
+
+    historyMap.forEach((key, value) {
+      if (value is Timestamp) {
+        statusHistory[key] = value.toDate();
+      } else if (value is DateTime) {
+        statusHistory[key] = value;
+      }
+    });
+
     return OrderModel(
       id: id,
 
@@ -89,7 +115,9 @@ class OrderModel {
 
       items: (map['items'] as List<dynamic>? ?? [])
           .map(
-            (item) => OrderItemModel.fromMap(Map<String, dynamic>.from(item)),
+            (item) => OrderItemModel.fromMap(
+              Map<String, dynamic>.from(item),
+            ),
           )
           .toList(),
 
@@ -113,11 +141,16 @@ class OrderModel {
       // Order
       orderStatus: map['orderStatus'] ?? '',
 
+      // Status history
+      statusHistory: statusHistory,
+
       createdAt: map['createdAt'] is Timestamp
           ? (map['createdAt'] as Timestamp).toDate()
           : map['createdAt'] is DateTime
-          ? map['createdAt']
-          : DateTime.parse(map['createdAt'].toString()),
+              ? map['createdAt']
+              : DateTime.parse(
+                  map['createdAt'].toString(),
+                ),
     );
   }
 }

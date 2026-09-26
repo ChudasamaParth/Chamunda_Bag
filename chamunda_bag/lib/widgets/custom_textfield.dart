@@ -79,8 +79,8 @@ class CustomTextField extends StatelessWidget {
             fillColor: Colors.white,
 
             contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 17,
+              horizontal: 10,
+              vertical: 15,
             ),
 
             border: OutlineInputBorder(
@@ -111,4 +111,3 @@ class CustomTextField extends StatelessWidget {
     );
   }
 }
-

@@ -23,6 +23,215 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
     });
   }
 
+  void _showTrackingDialog(OrderModel order) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        final isDelivered = order.orderStatus.toLowerCase() == 'delivered';
+
+        return Dialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header
+                Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Track Order',
+                            style: GoogleFonts.poppins(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Order #${_shortOrderId(order.id)}',
+                            style: GoogleFonts.poppins(
+                              fontSize: 11,
+                              color: Colors.grey.shade500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      icon: const Icon(Icons.close),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 24),
+
+                // Tracking timeline
+                _buildTrackingStep(
+                  title: 'Order Placed',
+                  subtitle: _formatTrackingDate(order.statusHistory['placed']),
+                  isCompleted: true,
+                  isLast: false,
+                ),
+
+                _buildTrackingStep(
+                  title: 'Delivered',
+                  subtitle: isDelivered
+                      ? _formatTrackingDate(order.statusHistory['delivered'])
+                      : 'Waiting for delivery',
+                  isCompleted: isDelivered,
+                  isLast: true,
+                ),
+
+                const SizedBox(height: 20),
+
+                // Current status
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 12,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.06),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        isDelivered
+                            ? Icons.check_circle_rounded
+                            : Icons.local_shipping_outlined,
+                        color: AppColors.primary,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          isDelivered
+                              ? 'Your order has been delivered'
+                              : 'Your order is on the way',
+                          style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  String _formatTrackingDate(DateTime? date) {
+    if (date == null) {
+      return 'Not available';
+    }
+
+    final hour = date.hour % 12 == 0 ? 12 : date.hour % 12;
+    final minute = date.minute.toString().padLeft(2, '0');
+    final period = date.hour >= 12 ? 'PM' : 'AM';
+
+    return '${date.day.toString().padLeft(2, '0')}/'
+        '${date.month.toString().padLeft(2, '0')}/'
+        '${date.year} • '
+        '$hour:$minute $period';
+  }
+
+  Widget _buildTrackingStep({
+    required String title,
+    required String subtitle,
+    required bool isCompleted,
+    required bool isLast,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Timeline indicator
+        Column(
+          children: [
+            Container(
+              height: 28,
+              width: 28,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: isCompleted ? AppColors.primary : Colors.grey.shade200,
+              ),
+              child: Icon(
+                isCompleted ? Icons.check : Icons.circle_outlined,
+                size: 16,
+                color: isCompleted ? Colors.white : Colors.grey.shade500,
+              ),
+            ),
+
+            if (!isLast)
+              Container(
+                width: 2,
+                height: 55,
+                color: isCompleted
+                    ? AppColors.primary.withValues(alpha: 0.35)
+                    : Colors.grey.shade200,
+              ),
+          ],
+        ),
+
+        const SizedBox(width: 14),
+
+        // Text
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.only(top: 2),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: isCompleted
+                        ? AppColors.textPrimary
+                        : Colors.grey.shade500,
+                  ),
+                ),
+
+                const SizedBox(height: 4),
+
+                Text(
+                  subtitle,
+                  style: GoogleFonts.poppins(
+                    fontSize: 11,
+                    color: isCompleted
+                        ? Colors.grey.shade600
+                        : Colors.grey.shade400,
+                  ),
+                ),
+
+                if (!isLast) const SizedBox(height: 30),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   Future<void> _refreshOrders() async {
     await context.read<OrderProvider>().loadOrders();
   }
@@ -307,12 +516,35 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
                   ),
                 ),
 
-                const SizedBox(width: 8),
+                const SizedBox(width: 12),
 
-                const Icon(
-                  Icons.chevron_right_rounded,
-                  size: 22,
-                  color: Colors.grey,
+                // Track Order button
+                OutlinedButton(
+                  onPressed: () {
+                    _showTrackingDialog(order);
+                  },
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.primary,
+                    side: BorderSide(
+                      color: AppColors.primary.withValues(alpha: 0.5),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: Text(
+                    'Track',
+                    style: GoogleFonts.poppins(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
               ],
             ),

@@ -47,6 +47,8 @@ class OrderProvider extends ChangeNotifier {
         paymentStatus: order.paymentStatus,
         orderStatus: order.orderStatus,
         createdAt: order.createdAt,
+
+        statusHistory: {'placed': order.createdAt},
       );
 
       await orderRef.set({
@@ -167,6 +169,11 @@ class OrderProvider extends ChangeNotifier {
           paymentStatus: oldOrder.paymentStatus,
           orderStatus: 'cancelled',
           createdAt: oldOrder.createdAt,
+
+          statusHistory: {
+            ...oldOrder.statusHistory,
+            'cancelled': DateTime.now(),
+          },
         );
       }
 

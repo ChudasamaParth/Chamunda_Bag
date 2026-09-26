@@ -23,10 +23,17 @@ class AuthProvider extends ChangeNotifier {
       notifyListeners();
     });
   }
+  Future<User?> waitForAuthState() async {
+    debugPrint('===== AUTH RESTORE CHECK =====');
 
-  // ─────────────────────────────────────
-  // LOGIN
-  // ─────────────────────────────────────
+    final user = await _auth.authStateChanges().first;
+
+    debugPrint('RESTORED USER: ${user?.email}');
+    debugPrint('RESTORED UID: ${user?.uid}');
+
+    _user = user;
+    return user;
+  }
 
   Future<bool> login({required String email, required String password}) async {
     _setLoading(true);
@@ -45,7 +52,8 @@ class AuthProvider extends ChangeNotifier {
       _errorMessage = _getErrorMessage(e.code);
       return false;
     } catch (e) {
-      _errorMessage = "Something went wrong. Please try again.";
+      debugPrint('LOGIN ERROR: $e');
+      _errorMessage = "Login error: $e";
       return false;
     } finally {
       _setLoading(false);
