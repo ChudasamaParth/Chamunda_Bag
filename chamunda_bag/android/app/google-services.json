@@ -12,7 +12,12 @@
           "package_name": "com.example.chamunda_bag"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "493045183022-2ndeag8vurvidmi5dg8uda2g5af9dgjs.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBbk8VTg8aZ7FbEPZ5tM9ACg28RH6gLlsE"
@@ -20,7 +25,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "493045183022-2ndeag8vurvidmi5dg8uda2g5af9dgjs.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "493045183022-76ctl02vj5agqkac3mjbib7i2omfi8lv.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.chamundaBag"
+              }
+            }
+          ]
         }
       }
     }

@@ -13,27 +13,12 @@ class EmptyWishlist extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.favorite_border_rounded,
+              Icons.check_box_outline_blank,
               size: 90,
               color: Colors.grey.shade400,
             ),
 
             const SizedBox(height: 20),
-
-            const Text(
-              "Your Wishlist is Empty",
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-            ),
-
-            const SizedBox(height: 10),
-
-            Text(
-              "Save your favourite bags\nand they'll appear here.",
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey.shade600, fontSize: 15),
-            ),
-
-            const SizedBox(height: 30),
 
             ElevatedButton(
               onPressed: () {

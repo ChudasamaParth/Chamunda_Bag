@@ -37,6 +37,40 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
+  Future<void> _loginWithGoogle() async {
+    final auth = context.read<AuthProvider>();
+
+    final success = await auth.signInWithGoogle();
+
+    if (!mounted) return;
+
+    if (success) {
+      final adminProvider = context.read<AdminProvider>();
+
+      await adminProvider.checkAdminStatus();
+
+      if (!mounted) return;
+
+      if (adminProvider.isAdmin) {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (_) => const AdminDashboard()),
+          (route) => false,
+        );
+      } else {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (_) => const MainScreen()),
+          (route) => false,
+        );
+      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(auth.errorMessage ?? 'Google sign-in failed.')),
+      );
+    }
+  }
+
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) {
       return;
@@ -66,8 +100,6 @@ class _LoginScreenState extends State<LoginScreen> {
     await adminProvider.checkAdminStatus();
 
     if (!mounted) return;
-
-    debugPrint("IS ADMIN: ${adminProvider.isAdmin}");
 
     if (adminProvider.isAdmin) {
       // Admin user
@@ -305,9 +337,11 @@ class _LoginScreenState extends State<LoginScreen> {
                           width: double.infinity,
                           height: 50,
                           child: OutlinedButton.icon(
-                            onPressed: () {
-                              // Google authentication later.
-                            },
+                            onPressed: auth.isLoading
+                                ? null
+                                : () async {
+                                    await _loginWithGoogle();
+                                  },
                             icon: const Icon(
                               Icons.g_mobiledata_rounded,
                               size: 30,

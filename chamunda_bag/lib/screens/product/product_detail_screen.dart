@@ -82,8 +82,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 },
               ),
 
-              ProductInfoSection(product: widget.product),
-
+              ProductInfo(product: widget.product),
               ProductFeatureChips(product: widget.product),
 
               ProductDescreption(product: widget.product),

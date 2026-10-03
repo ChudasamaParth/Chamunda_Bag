@@ -1,6 +1,8 @@
+import 'package:chamunda_bag/provider/auth_provider.dart';
 import 'package:chamunda_bag/widgets/custom_textfield.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
 import '../../core/app_colors.dart';
 
@@ -28,13 +30,13 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       return;
     }
 
+    final auth = context.read<AuthProvider>();
+
     setState(() {
       _isLoading = true;
     });
 
-    // Temporary logic.
-    // Real password-reset API/Firebase will be connected later.
-    await Future.delayed(const Duration(seconds: 1));
+    final success = await auth.resetPassword(_emailController.text.trim());
 
     if (!mounted) return;
 
@@ -42,9 +44,21 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       _isLoading = false;
     });
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Password reset link sent to your email")),
-    );
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Password reset link sent. Please check your email.'),
+        ),
+      );
+
+      Navigator.pop(context);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(auth.errorMessage ?? 'Unable to send reset link.'),
+        ),
+      );
+    }
   }
 
   @override
@@ -82,7 +96,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       height: 46,
                       width: 46,
 
-                      child: Icon(Icons.arrow_back_ios_new_rounded, size: 19),
+                      child: Icon(Icons.arrow_back_ios_new_rounded, size: 20),
                     ),
                   ),
                 ),
@@ -92,8 +106,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 // ICON
                 Center(
                   child: Container(
-                    height: 90,
-                    width: 90,
+                    height: 70,
+                    width: 70,
 
                     decoration: BoxDecoration(
                       color: AppColors.primary.withOpacity(.10),
@@ -102,7 +116,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
                     child: Icon(
                       Icons.lock_reset_rounded,
-                      size: 46,
+                      size: 35,
                       color: AppColors.primary,
                     ),
                   ),
@@ -117,7 +131,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     textAlign: TextAlign.center,
 
                     style: GoogleFonts.playfairDisplay(
-                      fontSize: 32,
+                      fontSize: 22,
                       fontWeight: FontWeight.bold,
                       color: AppColors.textPrimary,
                     ),

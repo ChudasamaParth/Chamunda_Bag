@@ -18,9 +18,9 @@ class ProductDescreption extends StatelessWidget {
         children: [
           /// Description Title
           Text(
-            "Description",
+            "About Product",
             style: GoogleFonts.playfairDisplay(
-              fontSize: 24,
+              fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
           ),

@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class AuthProvider extends ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -24,12 +25,7 @@ class AuthProvider extends ChangeNotifier {
     });
   }
   Future<User?> waitForAuthState() async {
-    debugPrint('===== AUTH RESTORE CHECK =====');
-
     final user = await _auth.authStateChanges().first;
-
-    debugPrint('RESTORED USER: ${user?.email}');
-    debugPrint('RESTORED UID: ${user?.uid}');
 
     _user = user;
     return user;
@@ -143,9 +139,40 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  // ─────────────────────────────────────
-  // LOADING
-  // ─────────────────────────────────────
+  Future<bool> signInWithGoogle() async {
+    _setLoading(true);
+    _errorMessage = null;
+
+    try {
+      final GoogleSignInAccount? googleUser = await GoogleSignIn.instance
+          .authenticate();
+
+      if (googleUser == null) {
+        return false;
+      }
+
+      final GoogleSignInAuthentication googleAuth = googleUser.authentication;
+
+      final credential = GoogleAuthProvider.credential(
+        idToken: googleAuth.idToken,
+      );
+
+      final userCredential = await _auth.signInWithCredential(credential);
+
+      _user = userCredential.user;
+
+      return true;
+    } on FirebaseAuthException catch (e) {
+      _errorMessage = _getErrorMessage(e.code);
+      return false;
+    } catch (e) {
+      debugPrint('GOOGLE LOGIN ERROR: $e');
+      _errorMessage = 'Google sign-in failed. Please try again.';
+      return false;
+    } finally {
+      _setLoading(false);
+    }
+  }
 
   void _setLoading(bool value) {
     _isLoading = value;

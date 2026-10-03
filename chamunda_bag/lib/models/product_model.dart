@@ -39,7 +39,7 @@ class ProductModel {
   final bool isBestSeller;
   final bool isNewArrival;
 
-  const ProductModel({
+  ProductModel({
     required this.id,
     required this.name,
     required this.category,
